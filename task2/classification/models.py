@@ -28,7 +28,7 @@ class RealEstateTextClassification():
         self.metric = tf.keras.metrics.SparseCategoricalAccuracy('accuracy')
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=2e-5, epsilon=1e-08)
         self.bert_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-        self.config = BertConfig.from_pretrained("bert-base-uncased", hidden_dropout_prob=0.5,
+        self.config = BertConfig.from_pretrained("bert-base-uncased", hidden_dropout_prob=0.2,
                                                  num_labels=self.num_classes)
         self.bert_model = TFBertForSequenceClassification.from_pretrained('bert-base-uncased',
                                                                           config=self.config)
