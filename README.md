@@ -2,12 +2,15 @@
 binary classification
 
 install all library:
+
 pip install -r requirements.txt
 
 Use following command to start training:
+
 python start_train.py 0|1
 
 0: Continues training
+
 1: Retrain the model
 
 For prediction:
