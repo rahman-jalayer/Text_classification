@@ -189,9 +189,6 @@ class Prediction(RealEstateTextClassification):
     def __init__(self, ):
         super().__init__()
         self.model_file = Path(self.model_save_path)
-        self.bert_model.load_weights(self.model_save_path)
-        self.test_data = self.data_loading(data_file=os.path.join(os.path.dirname(__file__), "dataset", "test.csv"))
-        self.test_data["text"] = self.test_data["Title"] + '. ' + self.test_data["Snippet"]
         if self.model_file.exists():
             self.bert_model.load_weights(self.model_save_path)
         else:
