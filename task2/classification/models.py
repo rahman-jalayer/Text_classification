@@ -197,7 +197,7 @@ class Prediction(RealEstateTextClassification):
     def predict(self, text):
         if not self.model_file.exists:
             print('There is no trained model')
-            return
+            return 'No model'
         doc = self.preprocess_doc(text)
         bert_inp = self.data_transform(doc)
         input_ids = [bert_inp['input_ids']]
