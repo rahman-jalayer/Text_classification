@@ -5,6 +5,7 @@ from classification.serializers import ClassificationSerializer, ClassificationT
 from rest_framework import status
 
 from classification.apps import ClassificationConfig
+import csv
 
 
 class ClassificationListView(APIView):
@@ -35,3 +36,14 @@ class ClassificationTextInputListView(APIView):
             return JsonResponse({'result': result})
         else:
             return JsonResponse({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+ def prediction_csv():
+    data = ClassificationConfig.test_data
+    header = ['Title', 'URL', 'predicted']
+    with open('dataset/prediction.csv', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+        for _, row in data.iterrows():
+            predicted = ClassificationConfig.predictor.predict(row['Title'] + '. ' + row['Snippet'])
+            print(predicted)
+            row_csv = [row['Title'], row['URL'], predicted]
+            writer.writerow(row_csv)
