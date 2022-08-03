@@ -91,39 +91,38 @@ class Train(RealEstateTextClassification):
                                                save_best_only=True), keras.callbacks.TensorBoard(log_dir=self.log_dir)]
 
     def train_test_split(self):
+            data_majority = self.data[self.data.Related == 0]
+            data_minority = self.data[self.data.Related == 1]
+            data_majority_downsampled = resample(data_majority,
+                                                 replace=False,
+                                                 n_samples=data_minority.shape[0],  # to match minority class
+                                                 random_state=123)
+            data = pd.concat([data_majority_downsampled, data_minority]).reset_index(drop=True)
+            _, self.test_data = train_test_split(data, test_size=0.10)
+            self.train_data = self.data.loc[~self.data.index.isin(self.test_data.index)]
 
-        data_majority = self.data[self.data.Related == 0]
-        data_minority = self.data[self.data.Related == 1]
-        data_majority_downsampled = resample(data_majority,
-                                             replace=False,
-                                             n_samples=data_minority.shape[0],  # to match minority class
-                                             random_state=123)
-        _, self.test_data = train_test_split(data_majority_downsampled, test_size=0.10)
-        self.train_data = self.data.loc[~self.data.index.isin(self.test_data.index)]
-
-    def training_data_prepration(self, data):
-        if 'Related' in data.columns:
-            data = data.rename(columns={'Related': 'label'})
-        data["text"] = data["Title"] + '. ' + data["Snippet"]
-        related_samples1 = data[data.label == 1].reset_index(drop=True)
-        related_samples2 = data[data.label == 1].reset_index(drop=True)
+    def training_data_prepration(self):
+        if 'Related' in self.train_data.columns:
+            self.train_data = self.train_data.rename(columns={'Related': 'label'})
+        self.train_data["text"] = self.train_data["Title"] + '. ' + self.train_data["Snippet"]
+        
+        related_samples1 = self.train_data[self.train_data.label == 1].reset_index(drop=True)
+        related_samples2 = self.train_data[self.train_data.label == 1].reset_index(drop=True)
         related_samples1['text'] = related_samples1["Title"]
         related_samples2['text'] = related_samples2["Snippet"]
-        data = shuffle(data.append(related_samples1).reset_index(drop=True))
-        data = shuffle(data.append(related_samples2).reset_index(drop=True))
-        return data
+        self.train_data = shuffle(self.train_data.append(related_samples1).reset_index(drop=True))
+        self.train_data = shuffle(self.train_data.append(related_samples2).reset_index(drop=True))
 
-    def validation_data_prepration(self, data):
-        if 'Related' in data.columns:
-            data = data.rename(columns={'Related': 'label'})
-        data["text"] = data["Title"] + '. ' + data["Snippet"]
-        related_samples1 = data
-        related_samples2 = data
+    def validation_data_prepration(self):
+        if 'Related' in self.test_data.columns:
+            self.test_data = self.test_data.rename(columns={'Related': 'label'})
+        self.test_data["text"] = self.test_data["Title"] + '. ' + self.test_data["Snippet"]
+        related_samples1 = self.test_data
+        related_samples2 = self.test_data
         related_samples1['text'] = related_samples1["Title"]
         related_samples2['text'] = related_samples2["Snippet"]
-        data = shuffle(data.append(related_samples1).reset_index(drop=True))
-        data = shuffle(data.append(related_samples2).reset_index(drop=True))
-        return data
+        data = shuffle(self.test_data.append(related_samples1).reset_index(drop=True))
+        data = shuffle(self.test_data.append(related_samples2).reset_index(drop=True))
 
     def data_augmentation(self, samples):
         return None
@@ -167,8 +166,8 @@ class Train(RealEstateTextClassification):
         self.data_file = data_file
         self.data = self.data_loading(self.data_file)
         self.train_test_split()
-        self.train_data = self.training_data_prepration(self.train_data)
-        self.test_data = self.validation_data_prepration(self.test_data)
+        self.training_data_prepration()
+        self.validation_data_prepration()
         self.data_augmentation(400)
         self.data_resampling()
         train_inp, train_label, train_mask = self.to_int(self.train_data)
